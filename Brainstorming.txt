@@ -1,0 +1,4 @@
+Feature Wish List:
+
+* Multiple Transformers in one fat jar ... just use jar -cp udf-transformer.jar IPv6
+* N-ary UDFs ... easy just use col list and project all cols to string, call(udf, string1 ... stringN);
