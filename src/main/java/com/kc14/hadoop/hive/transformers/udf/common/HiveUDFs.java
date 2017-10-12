@@ -46,7 +46,8 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 	public static String asHiveArray (Object[] a) {
 		String[] b = new String[a.length];
 		for (int i = 0; i < a.length; ++i) {
-			b[i] = "" + a[i]; // Convert object to its string representation
+			if (a[i] == null) b[i] = StaticOptionHolder.hivenull;
+			else b[i] = "" + a[i]; // Convert object to its string representation
 		}
 		return String.join(StaticOptionHolder.arraysep, b);		
 	}

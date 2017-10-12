@@ -79,6 +79,10 @@ public class UDFTransformerGroovy {
 				e.printStackTrace();
 				continue;
 			}
+			
+			for (int i = 0; i < outputRow.size(); ++i) { // Replace null by hive's null string representation
+				if (outputRow.get(i) == null) outputRow.set(i, StaticOptionHolder.hivenull);
+			}
 
 			out.write(String.join(StaticOptionHolder.outputsep, outputRow));
 			out.newLine();

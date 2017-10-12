@@ -10,8 +10,6 @@ import org.apache.commons.cli.Option;
 
 public interface UDFPackageIF {
 
-	static final String HIVE_NULL_STR = "\\N";
-	
 	String getPackageName();
 
 	Collection<Option> getOptions();
