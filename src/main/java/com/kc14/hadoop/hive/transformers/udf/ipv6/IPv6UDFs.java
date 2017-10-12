@@ -99,7 +99,7 @@ public class IPv6UDFs extends UDFAdapter implements UDFPackageIF {
 	}
 
 	private static ArrayList<String> readNetworkRanges(String networkRangesFilename) throws FileNotFoundException, IOException, UnsupportedEncodingException {
-		System.err.println("Reading file [" + networkRangesFilename + "] ...");
+		System.err.println("info: udf-transformer-groovy: IPv6UDFs.readNetworkRanges(): Reading file [" + networkRangesFilename + "] ...");
 		FileInputStream is = new FileInputStream(networkRangesFilename);
 		GZIPInputStream gzis = new GZIPInputStream(is, 16 * 4096); // This is a buffered input stream
 		InputStreamReader reader = new InputStreamReader(gzis, "UTF-8");
@@ -194,7 +194,7 @@ public class IPv6UDFs extends UDFAdapter implements UDFPackageIF {
 	private static IPv6AddressRange[] fromLinesIPv6Ranges(List<String> networkRangeLines) throws UnknownHostException {
 		int numLines = networkRangeLines.size();
 		
-		System.err.format("Converting network ranges to IPv6Ranges[%,d] for binary search ...\n", numLines);
+		System.err.format("info: udf-transformer-groovy: IPv6UDFs.fromLinesIPv6Ranges(): Converting network ranges to IPv6Ranges[%,d] for binary search ...\n", numLines);
 		
 		IPv6AddressRange[] ipv6NetworkRanges = new IPv6AddressRange[numLines];
 		int i = -1;
@@ -209,16 +209,16 @@ public class IPv6UDFs extends UDFAdapter implements UDFPackageIF {
 				ipv6NetworkRanges[i] = IPv6AddressRange.fromFirstAndLast(networkStart, networkLast);
 			}
 			catch (ArrayIndexOutOfBoundsException e) {
-				System.err.format("IPv6UDFs.fromLinesIPv6Ranges(): fatal error[exit(1)]: row[%,d]: [%s]: bad IPv6AddressRange\n", i+1, networkRangeLine);
+				System.err.format("fatal: udf-transformer-groovy: IPv6UDFs.fromLinesIPv6Ranges(): fatal error[exit(1)]: row[%,d]: [%s]: bad IPv6AddressRange\n", i+1, networkRangeLine);
 				System.exit(1);
 			}
 			catch (UnknownHostException e) {
-				System.err.format("IPv6UDFs.fromLinesIPv6Ranges(): fatal error[exit(2)]: row[%,d]: [%s]: bad IPv6Addresses\n", i+1, networkRangeLine);
+				System.err.format("fatal: udf-transformer-groovy: IPv6UDFs.fromLinesIPv6Ranges(): fatal error[exit(2)]: row[%,d]: [%s]: bad IPv6Addresses\n", i+1, networkRangeLine);
 				System.exit(2);
 			}
 		}
 		
-		System.err.format("Sorting IPv6Ranges[%,d] for binary search ...\n", numLines);
+		System.err.format("info: udf-transformer-groovy: IPv6UDFs.fromLinesIPv6Ranges(): Sorting IPv6Ranges[%,d] for binary search ...\n", numLines);
 		
 		Arrays.sort(ipv6NetworkRanges, new Comparator<IPv6AddressRange>() {
 			
@@ -229,7 +229,7 @@ public class IPv6UDFs extends UDFAdapter implements UDFPackageIF {
 
 		});
 		
-		System.err.println("Ready for lookup and transform.");
+		System.err.println("info: udf-transformer-groovy: IPv6UDFs.fromLinesIPv6Ranges(): Ready for lookup and transform.");
 
 		return ipv6NetworkRanges;
 	}

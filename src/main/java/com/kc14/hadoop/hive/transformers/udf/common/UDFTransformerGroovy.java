@@ -74,7 +74,7 @@ public class UDFTransformerGroovy {
 				outputRow = (List<String>) this.engine.eval(this.selectExpr);
 			}
 			catch (ScriptException e) {
-				System.err.format("udf-transformer-groovy: UDFTransformerGroovy.run(): Script exception in line[%d]: [%s]\n", lineNum, line);
+				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Script exception in line[%d]: [%s]\n", lineNum, line);
 				if (this.isFailEarly) throw e;
 				e.printStackTrace();
 				continue;

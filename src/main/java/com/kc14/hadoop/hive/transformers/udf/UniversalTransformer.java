@@ -19,7 +19,7 @@ public class UniversalTransformer {
 		// First Argument is csv list of UDF packages to use ...
 		
 		if (args.length < 1) {
-			System.err.println("The first argument must be a comma separated list of UDF packages classes to load, e.g. [com.kc14.hadoop.hive.transformers.udf.common.BasicUDFs].");
+			System.err.println("error: udf-transformer-groovy: UniversalTransformer.main(): The first argument must be a comma separated list of UDF packages classes to load, e.g. [com.kc14.hadoop.hive.transformers.udf.common.CommonUDFs].");
 			System.exit(99);
 		}
 

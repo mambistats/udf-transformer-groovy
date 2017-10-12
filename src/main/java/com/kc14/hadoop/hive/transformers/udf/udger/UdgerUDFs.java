@@ -151,7 +151,7 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 		// Set commandline options
 		
 		udgerDb = commandLine.getOptionValue(OPTION_UDGER_DATABASE);
-		System.err.println("UdgerUDFs: Using Database: " + udgerDb);
+		System.err.println("info: udf-transformer-groovy: UdgerUDFs.initFrom(): Using Database: " + udgerDb);
 		inMemory = commandLine.hasOption(OPTION_UDGER_INMEM);
 		if (commandLine.hasOption(OPTION_UDGER_CACHE)) cacheCapacity = Integer.parseInt(commandLine.getOptionValue(OPTION_UDGER_CACHE));
         if (commandLine.hasOption(OPTION_UDGER_FIELDS)) this.fields = commandLine.getOptionValues(OPTION_UDGER_FIELDS);
