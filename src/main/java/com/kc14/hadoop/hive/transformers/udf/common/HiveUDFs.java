@@ -13,9 +13,9 @@ import org.apache.commons.cli.Option;
 import com.kc14.hadoop.codec.binary.Hex;
 import com.kc14.hadoop.hive.transformers.udf.ipv6.IPv6UDFs;
 
-public class CommonUDFs extends UDFAdapter implements UDFPackageIF {
+public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 
-	private static final String PACKAGE_NAME = "common";
+	private static final String PACKAGE_NAME = "hive";
 	@Override
 	public String getPackageName() {
 		return PACKAGE_NAME;
@@ -37,8 +37,18 @@ public class CommonUDFs extends UDFAdapter implements UDFPackageIF {
 		this.inputRow = inputRow;
 	}
 	
+	// Utilities - can also be used by other UDF packages
+	
 	public static int colToRowIdx(int col) {
 		return col - 1;
+	}
+	
+	public static String asHiveArray (Object[] a) {
+		String[] b = new String[a.length];
+		for (int i = 0; i < a.length; ++i) {
+			b[i] = "" + a[i]; // Convert object to its string representation
+		}
+		return String.join(StaticOptionHolder.arraysep, b);		
 	}
 
 	// UDFs
@@ -47,13 +57,17 @@ public class CommonUDFs extends UDFAdapter implements UDFPackageIF {
 		return this.inputRow[colToRowIdx(pos)];
 	}
 	
+	public String array(Object[] a) {
+		return asHiveArray(a);
+	}
+	
 	public String concat(String s1, String s2) {
-		return s1 + "+" + s2;
+		return s1 + s2;
 	}
 	
 	// Varargs Example
-	public String concat_v(String... args) { // Type of args is String[] (I.e. an-Array of Strings)
-		return String.join("+", args);
+	public String concat_v(String... args) { // Type of args is String[] (I.e. an Array of Strings)
+		return String.join("", args);
 	}
 	
 	public String iphex(String value) throws UnknownHostException {
