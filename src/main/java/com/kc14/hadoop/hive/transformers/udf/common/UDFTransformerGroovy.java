@@ -26,11 +26,13 @@ public class UDFTransformerGroovy {
 	private String       selectExpr;
 	private UDFPackageIF udfPackage;
 	private ScriptEngine engine;
+	private boolean      isFailEarly;
 
 	private static final int    DEFAULT_NUM_BUFFERS = 1;
 
 	public UDFTransformerGroovy(UDFPackageIF udfPackage) {
 		this.numOfBuffers = DEFAULT_NUM_BUFFERS;
+		this.isFailEarly = false;
 		this.engine = createGroovyEngine();
 		this.udfPackage = udfPackage;
 		this.putIntoEngine(udfPackage);
@@ -61,12 +63,22 @@ public class UDFTransformerGroovy {
 		String[] inputRow = null;
 		List<String> outputRow = null;
 
+		int lineNum = 0;
 		while ((line = in.readLine()) != null) {
+			++lineNum;
 			inputRow = line.split(StaticOptionHolder.inputsep);
 			this.udfPackage.prepareInputRow(inputRow);
 			this.engine.put(INPUT_ROW_NAME, inputRow);
 
-			outputRow = (List<String>) this.engine.eval(this.selectExpr);
+			try {
+				outputRow = (List<String>) this.engine.eval(this.selectExpr);
+			}
+			catch (ScriptException e) {
+				System.err.format("udf-transformer-groovy: UDFTransformerGroovy.run(): Script exception in line[%d]: [%s]\n", lineNum, line);
+				if (this.isFailEarly) throw e;
+				e.printStackTrace();
+				continue;
+			}
 
 			out.write(String.join(StaticOptionHolder.outputsep, outputRow));
 			out.newLine();
@@ -81,6 +93,7 @@ public class UDFTransformerGroovy {
 	private final static String OPTION_INPUT_SEP =    "input-sep";
 	private final static String OPTION_OUTPUT_SEP =   "output-sep";
 	private final static String OPTION_ARRAY_SEP =    "array-sep";
+	private final static String OPTION_FAIL_EARLY =   "fail-early";
 
 	public CommandLine parse (String[] args, Options otherOptions) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
@@ -134,6 +147,13 @@ public class UDFTransformerGroovy {
 				.numberOfArgs (1)
 				.build());
 
+		options.addOption(Option.builder()
+				.longOpt      (OPTION_FAIL_EARLY)
+				.desc         ("fail immediately at bad input line (default: false)")
+				.required     (false)
+				.hasArg       (false)
+				.build());
+
 		String usageHeader = "Stdin: Line with Hive TSV\n"
 				+ "Stdout: Hive TSV as defined by --select\n";
 		
@@ -155,6 +175,7 @@ public class UDFTransformerGroovy {
 			if (commandLine.hasOption(OPTION_OUTPUT_SEP)) StaticOptionHolder.outputsep = commandLine.getOptionValue(OPTION_OUTPUT_SEP);
 			if (commandLine.hasOption(OPTION_ARRAY_SEP)) StaticOptionHolder.arraysep = commandLine.getOptionValue(OPTION_ARRAY_SEP);
 			if (commandLine.hasOption(OPTION_BUFFERS)) this.numOfBuffers = ((Number)commandLine.getParsedOptionValue("buffers")).intValue();
+			this.isFailEarly = commandLine.hasOption(OPTION_FAIL_EARLY);
 			this.selectExpr = commandLine.getOptionValue(OPTION_SELECT);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
