@@ -4,4 +4,4 @@ echo $'a\tb\tc\t127.126.125.124\t223.123.124.129\tf\tg\th\ti\tj\tk\tl\tm\tn\to\t
 java -Xmx4G -cp "${BASEDIR}/target/udf-transformer-groovy-0.0.1-SNAPSHOT-jar-with-dependencies.jar" \
 Use Common,IPv6 \
 --ipv6-ranges "${BASEDIR}/resources/ipv6+4_network_ranges.gz" \
---select "[ c.col(1), c.col(2), c.col(3), c.col(4), c.col(5), ipv6.ip(c.col(4)), ipv6.ip(c.col(5)), c.col(6), c.col(7), c.col(8), c.col(9), c.col(10), c.col(11), c.col(12), c.col(13), c.col(14), c.col(15), c.col(16), c.col(17), c.concat(c.col(1), c.col(2)), c.concat_v(c.col(6), c.col(7), c.col(8)) ]"
+--select "[ c[0], c[1], c[2], c[3], c[4], ipv6.ip(c[3]), ipv6.ip(c[4]), c[5], c[6], c[7], c[8], c[9], c[10], c[11], c[12], c[13], c[14], c[15], c[16], common.concat(c[0], c[1]), common.concat_v(c[5], c[6], c[7]) ]"

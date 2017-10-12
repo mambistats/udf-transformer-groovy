@@ -48,6 +48,8 @@ public class UDFTransformerGroovy {
 
 	// Hive transformer loop
 	
+	private final static String INPUT_ROW_NAME = "c";
+
 	public void run() throws ScriptException, IOException {
 		// Read ipaddr from stdin, get ip network start
 		// Output: ip, family, normalized_ip, ipaddrAsLongStr, networt_start
@@ -62,6 +64,7 @@ public class UDFTransformerGroovy {
 		while ((line = in.readLine()) != null) {
 			inputRow = line.split(StaticOptionHolder.inputsep);
 			this.udfPackage.prepareInputRow(inputRow);
+			this.engine.put(INPUT_ROW_NAME, inputRow);
 
 			outputRow = (List<String>) this.engine.eval(this.selectExpr);
 

@@ -15,7 +15,7 @@ import com.kc14.hadoop.hive.transformers.udf.ipv6.IPv6UDFs;
 
 public class CommonUDFs extends UDFAdapter implements UDFPackageIF {
 
-	private static final String PACKAGE_NAME = "c";
+	private static final String PACKAGE_NAME = "common";
 	@Override
 	public String getPackageName() {
 		return PACKAGE_NAME;
