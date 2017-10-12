@@ -61,7 +61,6 @@ public class UDFCollection extends UDFAdapter implements UDFPackageIF {
 	@Override
 	public void putInto(ScriptEngine engine) {
 		for (Entry<String, UDFPackageIF> udfPackageEntry : this.udfPackages.entrySet()) {
-			System.err.println(udfPackageEntry.getValue().getPackageName());
 			udfPackageEntry.getValue().putInto(engine);
 		}
 	}
