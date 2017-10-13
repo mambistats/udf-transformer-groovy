@@ -19,6 +19,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class UDFTransformerGroovy {
 
@@ -74,7 +75,7 @@ public class UDFTransformerGroovy {
 				outputRow = (List<String>) this.engine.eval(this.selectExpr);
 			}
 			catch (Exception e) {
-				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Exception in line[%d]: [%s]\n", lineNum, line);
+				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Exception in line[%d]: [%s]\n", lineNum, StringEscapeUtils.escapeJava(line));
 				if (this.isFailEarly) throw e;
 				e.printStackTrace();
 				continue;

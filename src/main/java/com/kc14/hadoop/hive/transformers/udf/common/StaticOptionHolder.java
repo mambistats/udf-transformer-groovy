@@ -4,7 +4,7 @@ public class StaticOptionHolder {
 	
 	private static final String DEFAULT_INPUT_SEP = "\t";
 	private static final String DEFAULT_OUTPUT_SEP = "\t";
-	private static final String DEFAULT_ARRAY_SEP = "\2";
+	private static final String DEFAULT_ARRAY_SEP = "\u0002"; // I.e. ASCII STX (Start of Text: x02)
 	private static final String DEFAULT_HIVE_NULL_STR = "\\N";
 	
 
