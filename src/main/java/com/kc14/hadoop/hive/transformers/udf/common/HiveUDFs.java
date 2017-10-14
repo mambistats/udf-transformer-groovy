@@ -4,8 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.regex.Pattern;
+
+import javax.crypto.CipherInputStream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -39,18 +43,51 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 	
 	// Utilities - can also be used by other UDF packages
 	
+	private static int countEscapes(String s, char toEscape) {
+		int countEscapes = 0;
+		for (char c : s.toCharArray()) if (c == toEscape) ++countEscapes;
+		if (countEscapes > 0 && StaticOptionHolder.isOutputEscapingEnabled == false) throw new IllegalArgumentException(String.format("Found character to escape [%c] in [%s] but escaping is disabled", toEscape, s));
+		return countEscapes;
+	}
+	
+	private static String escapeChar(String s, char toEscape) {
+		int countEscapes = countEscapes(s, toEscape);
+		
+		if (countEscapes == 0) return s;
+
+		char[] r = new char[s.length() + countEscapes];
+		int i = 0;
+		for (char c : s.toCharArray()) {
+			if (c == StaticOptionHolder.outputsep) r[i++] = StaticOptionHolder.outputesc;
+			r[i++] = c;
+		}
+		return new String(r, 0, i);
+	}
+	
+	public static String encodeHiveString(String s) {
+		return escapeChar(s, StaticOptionHolder.outputsep);
+	}
+
+	public static String encodeHiveArrayElement(String s) {
+		return escapeChar(s, StaticOptionHolder.outputarr);
+	}
+
 	public static int colToRowIdx(int col) {
 		return col - 1;
 	}
 	
-	public static String asHiveArray (Object[] a) {
+	public static String toHiveArray (Object[] a) {
 		String[] b = new String[a.length];
 		for (int i = 0; i < a.length; ++i) {
 			if (a[i] == null) b[i] = StaticOptionHolder.hivenull;
-			else b[i] = "" + a[i]; // Convert object to its string representation
+			else b[i] = encodeHiveArrayElement(String.valueOf(a[i])); // Convert object to its string representation
 		}
-		return String.join(StaticOptionHolder.arraysep, b);		
+		return String.join(Character.toString(StaticOptionHolder.outputarr), b);		
 	}
+	
+	private String[] fromHiveArray(String a) {
+		return a.split(Character.toString(StaticOptionHolder.inputarr));
+	}	
 
 	// UDFs
 	
@@ -59,15 +96,18 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 	}
 	
 	public String array(Object[] a) {
-		return asHiveArray(a);
+		return toHiveArray(a);
 	}
 	
-	public String concat(String s1, String s2) {
-		return s1 + s2;
+	public String encodeArray(Object[] a) {
+		return toHiveArray(a);
 	}
 	
-	// Varargs Example
-	public String concat_v(String... args) { // Type of args is String[] (I.e. an Array of Strings)
+	public String[] decodeArray(String a) {
+		return fromHiveArray(a);
+	}
+	
+	public String concat(String... args) { // Type of args is String[] (I.e. an Array of Strings)
 		return String.join("", args);
 	}
 	

@@ -66,15 +66,15 @@ public class UDFTransformerGroovy {
 		int lineNum = 0;
 		while ((line = in.readLine()) != null) {
 			++lineNum;
-			inputRow = line.split(StaticOptionHolder.inputsep);
+			inputRow = line.split(Character.toString(StaticOptionHolder.inputsep));
 			this.udfPackage.prepareInputRow(inputRow);
 			this.engine.put(INPUT_ROW_NAME, inputRow);
 
 			try {
 				outputRow = (List<String>) this.engine.eval(this.selectExpr);
 			}
-			catch (ScriptException e) {
-				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Script exception in line[%d]: [%s]\n", lineNum, line);
+			catch (Exception e) {
+				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Exception in line[%d]: [%s]\n", lineNum, line);
 				if (this.isFailEarly) throw e;
 				e.printStackTrace();
 				continue;
@@ -84,7 +84,7 @@ public class UDFTransformerGroovy {
 				if (outputRow.get(i) == null) outputRow.set(i, StaticOptionHolder.hivenull);
 			}
 
-			out.write(String.join(StaticOptionHolder.outputsep, outputRow));
+			out.write(String.join(Character.toString(StaticOptionHolder.outputsep), outputRow));
 			out.newLine();
 		}
 		// in.close(); // Hive should do that ...
@@ -95,6 +95,7 @@ public class UDFTransformerGroovy {
 	private final static String OPTION_SELECT =       "select";
 	private final static String OPTION_BUFFERS =      "buffers";
 	private final static String OPTION_INPUT_SEP =    "input-sep";
+	private final static String OPTION_INPUT_ESC =    "input-esc";
 	private final static String OPTION_OUTPUT_SEP =   "output-sep";
 	private final static String OPTION_ARRAY_SEP =    "array-sep";
 	private final static String OPTION_FAIL_EARLY =   "fail-early";
@@ -126,20 +127,32 @@ public class UDFTransformerGroovy {
 
 		options.addOption(Option.builder()
 				.longOpt      (OPTION_INPUT_SEP)
-				.desc         ("input separator (default [\\t]")
+				.desc         ("input separator (default [\\t])")
 				.required     (false)
 				.hasArg       (true)
-				.argName      ("separator")
+				.argName      ("char")
 				.numberOfArgs (1)
+				.type         (Character.class)
+				.build());
+
+		options.addOption(Option.builder()
+				.longOpt      (OPTION_INPUT_ESC)
+				.desc         ("input escape character (disabled by default, i.e. no escaping possible)")
+				.required     (false)
+				.hasArg       (true)
+				.argName      ("char")
+				.numberOfArgs (1)
+				.type         (Character.class)
 				.build());
 
 		options.addOption(Option.builder()
 				.longOpt      (OPTION_OUTPUT_SEP)
-				.desc         ("output separator (default [\\t]")
+				.desc         ("output separator (default [\\t])")
 				.required     (false)
 				.hasArg       (true)
-				.argName      ("separator")
+				.argName      ("char")
 				.numberOfArgs (1)
+				.type         (Character.class)
 				.build());
 
 		options.addOption(Option.builder()
@@ -149,6 +162,7 @@ public class UDFTransformerGroovy {
 				.hasArg       (true)
 				.argName      ("separator")
 				.numberOfArgs (1)
+				.type         (Character.class)
 				.build());
 
 		options.addOption(Option.builder()
@@ -175,9 +189,13 @@ public class UDFTransformerGroovy {
 
 		try {
 			commandLine = parser.parse(options, args);
-			if (commandLine.hasOption(OPTION_INPUT_SEP)) StaticOptionHolder.inputsep = commandLine.getOptionValue(OPTION_INPUT_SEP);
-			if (commandLine.hasOption(OPTION_OUTPUT_SEP)) StaticOptionHolder.outputsep = commandLine.getOptionValue(OPTION_OUTPUT_SEP);
-			if (commandLine.hasOption(OPTION_ARRAY_SEP)) StaticOptionHolder.arraysep = commandLine.getOptionValue(OPTION_ARRAY_SEP);
+			if (commandLine.hasOption(OPTION_INPUT_SEP)) StaticOptionHolder.inputsep = commandLine.getOptionValue(OPTION_INPUT_SEP).charAt(0);
+			if (commandLine.hasOption(OPTION_INPUT_ESC)) {
+				StaticOptionHolder.isIntputEscapingEnabled = true;
+				StaticOptionHolder.inputesc = commandLine.getOptionValue(OPTION_INPUT_ESC).charAt(0);
+			}
+			if (commandLine.hasOption(OPTION_OUTPUT_SEP)) StaticOptionHolder.outputsep = commandLine.getOptionValue(OPTION_OUTPUT_SEP).charAt(0);
+			if (commandLine.hasOption(OPTION_ARRAY_SEP)) StaticOptionHolder.outputarr = commandLine.getOptionValue(OPTION_ARRAY_SEP).charAt(0);
 			if (commandLine.hasOption(OPTION_BUFFERS)) this.numOfBuffers = ((Number)commandLine.getParsedOptionValue("buffers")).intValue();
 			this.isFailEarly = commandLine.hasOption(OPTION_FAIL_EARLY);
 			this.selectExpr = commandLine.getOptionValue(OPTION_SELECT);
