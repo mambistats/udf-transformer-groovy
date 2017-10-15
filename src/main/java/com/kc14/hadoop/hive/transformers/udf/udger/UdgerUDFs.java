@@ -164,7 +164,7 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 		this.udgerParser = new UdgerParser (udgerDb, inMemory, cacheCapacity);
 	}
 
-	public String[] parseUa(String value) {
+	public List<String> parseUa(String value) {
 		UdgerUaResult udgerUaResult = null;
 		try {
 			// udgerUaResult = this.udgerParser.parseUa("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9");
@@ -174,8 +174,7 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 		}
 		Map<String, String> udgerUaResultProperties = BeanUtils.getBeanProperties(udgerUaResult);
 		List<String> udgerUaResultPropertyValues = Arrays.asList(this.fields).stream().map(field -> udgerUaResultProperties.get(field)).collect(Collectors.toList());
-		System.err.println(Arrays.toString(udgerUaResultPropertyValues.toArray(StaticOptionHolder.STRING_ARRAY)));
-		return udgerUaResultPropertyValues.toArray(StaticOptionHolder.STRING_ARRAY); 
+		return udgerUaResultPropertyValues; 
 	}
 
 }

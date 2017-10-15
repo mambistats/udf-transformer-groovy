@@ -10,5 +10,6 @@ Use Hive,Udger \
 --udger-inmem \
 --udger-cache 100000 \
 --select "[ c[0], c[1], c[2], hive.array(udger.parseUa(c[3])), c[4], c[5], hive.array([ 'a|b', 'c' ]) ]" \
---output-sep "|" \
---array-sep ","
+-D transformer.array.esc.enable=false \
+-D transformer.output.sep="|" \
+-D transformer.output.array.elem.sep=","
