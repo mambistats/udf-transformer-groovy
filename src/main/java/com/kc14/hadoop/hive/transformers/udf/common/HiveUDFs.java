@@ -10,7 +10,6 @@ import java.util.Collections;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.kc14.hadoop.codec.binary.Hex;
@@ -50,12 +49,15 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 
 	private static String escapeArrayElement(Object o) {
 		String s = StringEscapeUtils.escapeJava(String.valueOf(String.valueOf(o))); // Escape tab newline etc
-		return s.replace(Character.toString(StaticOptionHolder.outputArrElemSep), StaticOptionHolder.ucEscOutputArrElemSep); // Escape array element separator
+		String elemSepReplaced = s.replace(Character.toString(StaticOptionHolder.outputArrElemSep), StaticOptionHolder.ucEscOutputArrElemSep); // Escape array element separator
+		String outputSepReplaced = elemSepReplaced.replace(Character.toString(StaticOptionHolder.outputSep), StaticOptionHolder.ucEscOutputSep); // Escape array element separator
+		return outputSepReplaced;
 	}
 	
 	private static String rawArrayElement(Object o) {
 		String s = String.valueOf(o);
-		if (s.indexOf(StaticOptionHolder.outputArrElemSep) >= 0) throw new IllegalArgumentException(String.format("Array element [%s] contains separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputArrElemSep, (int) StaticOptionHolder.outputArrElemSep));
+		if (s.indexOf(StaticOptionHolder.outputArrElemSep) >= 0) throw new IllegalArgumentException(String.format("Array element [%s] contains array element separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputArrElemSep, (int) StaticOptionHolder.outputArrElemSep));
+		if (s.indexOf(StaticOptionHolder.outputSep) >= 0) throw new IllegalArgumentException(String.format("Array element [%s] contains output separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputSep, (int) StaticOptionHolder.outputSep));
 		return s;
 	}
 

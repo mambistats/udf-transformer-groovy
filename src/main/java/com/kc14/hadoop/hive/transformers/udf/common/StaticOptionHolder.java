@@ -26,10 +26,15 @@ public class StaticOptionHolder {
 	public static char    outputSep =        DEFAULT_OUTPUT_SEP;
 	public static char    outputArrElemSep = DEFAULT_OUTPUT_ARR_ELEM_SEP;
 	public static String  hiveNull =         DEFAULT_HIVE_NULL_STR;
+	
+	public static String toUnicodeEscape (char c) {
+		return String.format("\\u%04x", (int) c);
+	}
 
 	public static boolean isOutputEscEnabled = false;
 	public static boolean isArrayEscEnabled = false;
-	public static String  ucEscOutputArrElemSep = String.format("\\x04x", (int) DEFAULT_OUTPUT_ARR_ELEM_SEP);
+	public static String  ucEscOutputArrElemSep = toUnicodeEscape(DEFAULT_OUTPUT_ARR_ELEM_SEP);
+	public static String  ucEscOutputSep = toUnicodeEscape(DEFAULT_OUTPUT_SEP);;
 	
 	public static Properties properties = new Properties();
 
@@ -41,7 +46,9 @@ public class StaticOptionHolder {
 
 		StaticOptionHolder.outputSep =        properties.getProperty(PROPERTY_OUTPUT_SEP,          Character.toString(DEFAULT_OUTPUT_SEP)).charAt(0);
 		StaticOptionHolder.outputArrElemSep = properties.getProperty(PROPERTY_OUTPUT_ARR_ELEM_SEP, Character.toString(DEFAULT_OUTPUT_ARR_ELEM_SEP)).charAt(0);
-		StaticOptionHolder.ucEscOutputArrElemSep = String.format("\\x04x", (int) StaticOptionHolder.outputArrElemSep);
+
+		StaticOptionHolder.ucEscOutputSep = toUnicodeEscape(StaticOptionHolder.outputSep);
+		StaticOptionHolder.ucEscOutputArrElemSep = toUnicodeEscape(StaticOptionHolder.outputArrElemSep);
 		
 		StaticOptionHolder.isOutputEscEnabled = Boolean.valueOf(properties.getProperty(PROPERTY_OUTPUT_ESC_ENABLE));
 		StaticOptionHolder.isArrayEscEnabled = Boolean.valueOf(properties.getProperty(PROPERTY_ARRAY_ESC_ENABLE));

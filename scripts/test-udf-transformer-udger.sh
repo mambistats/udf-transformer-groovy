@@ -9,7 +9,7 @@ Use Hive,Udger \
 --udger-database "${BASEDIR}/resources/udgerdb_v3.dat" \
 --udger-inmem \
 --udger-cache 100000 \
---select "[ c[0], c[1], c[2], hive.array(udger.parseUa(c[3])), c[4], c[5], hive.array([ 'a|b', 'c' ]) ]" \
--D transformer.array.esc.enable=false \
+--select "[ c[0], c[1], c[2], udger.parseUa(c[3]), c[4], c[5], [ 'a|b', 'c' ] ]" \
 -D transformer.output.sep="|" \
+-D transformer.array.esc.enable=true \
 -D transformer.output.array.elem.sep=","
