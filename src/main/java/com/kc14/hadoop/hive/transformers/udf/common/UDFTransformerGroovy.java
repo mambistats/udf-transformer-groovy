@@ -102,7 +102,7 @@ public class UDFTransformerGroovy {
 			try {
 				for (Object o: iterableOutput) {
 					if (o == null) outputRow.add(StaticOptionHolder.hiveNull); // Replace null by hive's null string representation
-					else if (o instanceof Object[]) outputRow.add(HiveUDFs.toHiveArray(Arrays.asList(o)));
+					else if (o.getClass().isArray()) outputRow.add(HiveUDFs.toHiveArray(Arrays.asList(o)));
 					else if (o instanceof Iterable<?>) outputRow.add(HiveUDFs.toHiveArray((Iterable<?>) o));
 					else outputRow.add(HiveUDFs.toHiveString(o));
 				}
