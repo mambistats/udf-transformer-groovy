@@ -65,14 +65,14 @@ public class UDFTransformerGroovy {
 		String[] inputRow = null;
 		Object rawOutput = null;
 		Iterable<?> iterableOutput = null;
-		List<String> normalizedOutputRow = null;
+		List<String> outputRow = null;
 		int lineNum = 0;
 
 		while ((line = in.readLine()) != null) {
 
 			rawOutput = null;
 			iterableOutput = null;
-			normalizedOutputRow = null;
+			outputRow = null;
 
 			++lineNum;
 
@@ -98,14 +98,14 @@ public class UDFTransformerGroovy {
 				iterableOutput = outputList;
 			}
 			
-			normalizedOutputRow = new ArrayList<>();
+			outputRow = new ArrayList<>();
 			
 			try {
 				for (Object o: iterableOutput) {
-					if (o == null) normalizedOutputRow.add(StaticOptionHolder.hiveNull); // Replace null by hive's null string representation
-					else if (o instanceof Object[]) normalizedOutputRow.add(HiveUDFs.toHiveArray(Arrays.asList(o)));
-					else if (o instanceof Iterable<?>) normalizedOutputRow.add(HiveUDFs.toHiveArray((Iterable<?>) o));
-					else normalizedOutputRow.add(HiveUDFs.toHiveString(o));
+					if (o == null) outputRow.add(StaticOptionHolder.hiveNull); // Replace null by hive's null string representation
+					else if (o instanceof Object[]) outputRow.add(HiveUDFs.toHiveArray(Arrays.asList(o)));
+					else if (o instanceof Iterable<?>) outputRow.add(HiveUDFs.toHiveArray((Iterable<?>) o));
+					else outputRow.add(HiveUDFs.toHiveString(o));
 				}
 			}
 			catch (Exception e) {
@@ -116,7 +116,7 @@ public class UDFTransformerGroovy {
 				continue;
 			}
 			
-			out.write(String.join(Character.toString(StaticOptionHolder.outputSep), normalizedOutputRow));
+			out.write(String.join(Character.toString(StaticOptionHolder.outputSep), outputRow));
 			out.newLine();
 		}
 		
