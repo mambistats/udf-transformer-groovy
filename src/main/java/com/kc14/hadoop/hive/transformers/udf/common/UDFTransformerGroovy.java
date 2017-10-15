@@ -110,7 +110,7 @@ public class UDFTransformerGroovy {
 			}
 			catch (Exception e) {
 				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Exception during result output of line[%d]: [%s]\n", lineNum, StringEscapeUtils.escapeJava(line));
-				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Bad output row: %s\n", String.valueOf(rawOutput));
+				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Bad output row: %s\n", StringEscapeUtils.escapeJava(String.valueOf(rawOutput)));
 				if (this.isFailEarly) throw e;
 				e.printStackTrace();
 				continue;
