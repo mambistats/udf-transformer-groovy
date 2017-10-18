@@ -53,6 +53,7 @@ public class UDFTransformerGroovy {
 
 	public void run() throws ScriptException, IOException {
 		this.putIntoEngine(this.udfPackage);
+		UDFPackageIF udfPackage = this.udfPackage;
 		ScriptEngine scriptEngine = this.expressionEvaluator.getScriptEngine();
 		ExpressionEvaluator expressionEvaluator = this.expressionEvaluator;
 		
@@ -77,7 +78,7 @@ public class UDFTransformerGroovy {
 
 			inputRow = line.split(Character.toString(StaticOptionHolder.inputSep));
 
-			this.udfPackage.prepareInputRow(inputRow);
+			udfPackage.prepareInputRow(inputRow);
 			scriptEngine.put(INPUT_ROW_NAME, inputRow);
 			
 			try {
