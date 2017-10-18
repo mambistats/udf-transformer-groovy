@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.apache.commons.cli.CommandLine;
@@ -25,30 +24,27 @@ import org.apache.commons.text.StringEscapeUtils;
 
 public class UDFTransformerGroovy {
 
-	private int          numOfBuffers;
-	private String       selectExpr;
-	private UDFPackageIF udfPackage;
-	private ScriptEngine engine;
-	private boolean      isFailEarly;
+	private int                 numOfBuffers;
+	private boolean             isFailEarly;
+	private String              engineName;
+	private UDFPackageIF        udfPackage;
+	private String              selectExpr;
+	private ExpressionEvaluator expressionEvaluator;
 
 	private static final int    DEFAULT_NUM_BUFFERS = 1;
+	private static final String DEFAULT_SCRIPT_ENGINE_NAME = "groovy";
 
 	public UDFTransformerGroovy(UDFPackageIF udfPackage) {
-		this.numOfBuffers = DEFAULT_NUM_BUFFERS;
-		this.isFailEarly = false;
-		this.engine = createGroovyEngine();
-		this.udfPackage = udfPackage;
-		this.putIntoEngine(udfPackage);
-	}
-
-	public static ScriptEngine createGroovyEngine () {
-		ScriptEngineManager engineFactory = new ScriptEngineManager();
-		ScriptEngine groovyEngine = engineFactory.getEngineByName("groovy");
-		return groovyEngine;
+		this.numOfBuffers =        DEFAULT_NUM_BUFFERS;
+		this.isFailEarly =         false;
+		this.engineName =          DEFAULT_SCRIPT_ENGINE_NAME;
+		this.udfPackage =          udfPackage;
+		this.selectExpr =          null;
+		this.expressionEvaluator = null;
 	}
 
 	private void putIntoEngine(UDFPackageIF udfPackage) {
-		udfPackage.putInto(this.engine);
+		udfPackage.putInto(this.expressionEvaluator.getScriptEngine());
 	}
 
 	// Hive transformer loop
@@ -56,6 +52,10 @@ public class UDFTransformerGroovy {
 	private final static String INPUT_ROW_NAME = "c";
 
 	public void run() throws ScriptException, IOException {
+		this.putIntoEngine(this.udfPackage);
+		ScriptEngine scriptEngine = this.expressionEvaluator.getScriptEngine();
+		ExpressionEvaluator expressionEvaluator = this.expressionEvaluator;
+		
 		BufferedReader in =  new BufferedReader(new InputStreamReader(System.in),   this.numOfBuffers * 8192);
 		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(System.out), this.numOfBuffers * 4096);
 
@@ -78,10 +78,10 @@ public class UDFTransformerGroovy {
 			inputRow = line.split(Character.toString(StaticOptionHolder.inputSep));
 
 			this.udfPackage.prepareInputRow(inputRow);
-			this.engine.put(INPUT_ROW_NAME, inputRow);
+			scriptEngine.put(INPUT_ROW_NAME, inputRow);
 			
 			try {
-				rawOutput = this.engine.eval(this.selectExpr);
+				rawOutput = expressionEvaluator.eval();
 			}
 			catch (Exception e) {
 				System.err.format("error: udf-transformer-groovy: UDFTransformerGroovy.run(): Exception during processing of line[%d]: [%s]\n", lineNum, StringEscapeUtils.escapeJava(line));
@@ -124,18 +124,28 @@ public class UDFTransformerGroovy {
 		out.close(); // ... but we are definitely done and need that to flush the data
 	}
 	
+	private final static String LONG_OPTION_ENGINE =       "engine";
 	private final static String LONG_OPTION_SELECT =       "select";
 	private final static String LONG_OPTION_BUFFERS =      "buffers";
 	private final static String LONG_OPTION_DEFINE =       "define";
 	private final static String SHORT_OPTION_DEFINE =      "D";
 	private final static String LONG_OPTION_FAIL_EARLY =   "fail-early";
 
-	public CommandLine parse (String[] args, Options otherOptions) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public CommandLine parse (String[] args, Options otherOptions) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ScriptException {
 
 		// Option Parsing
 		
 		Options options = new Options();
 		
+		options.addOption(Option.builder()
+				.longOpt      (LONG_OPTION_ENGINE)
+				.desc         ("Script Engine (default: groovy).\n")
+				.required     (false)
+				.hasArg       (true)
+				.argName      ("groovy")
+				.numberOfArgs (1)
+				.build());
+
 		options.addOption(Option.builder()
 				.longOpt      (LONG_OPTION_SELECT)
 				.desc         ("select columns or UDF calls to output.\n")
@@ -192,7 +202,9 @@ public class UDFTransformerGroovy {
 			if (commandLine.hasOption(LONG_OPTION_BUFFERS)) this.numOfBuffers = ((Number)commandLine.getParsedOptionValue("buffers")).intValue();
 			StaticOptionHolder.setProperties(commandLine.getOptionProperties(LONG_OPTION_DEFINE));
 			this.isFailEarly = commandLine.hasOption(LONG_OPTION_FAIL_EARLY);
+			if (commandLine.hasOption(LONG_OPTION_ENGINE)) this.engineName = commandLine.getOptionValue(LONG_OPTION_ENGINE);
 			this.selectExpr = commandLine.getOptionValue(LONG_OPTION_SELECT);
+			this.expressionEvaluator = ExpressionEvaluatorFactory.createExpressionEvaluator(this.engineName, this.selectExpr);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
 			boolean autoUsageYes = true;
