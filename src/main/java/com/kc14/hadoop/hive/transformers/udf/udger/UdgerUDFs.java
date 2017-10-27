@@ -73,6 +73,7 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 			"uaFamily",
 			"uaVersionMajor",
 			"uaVersion",
+			"uaUptodateCurrentVersion",
 			"deviceClass",
 			"deviceBrand",
 			"deviceMarketname",
