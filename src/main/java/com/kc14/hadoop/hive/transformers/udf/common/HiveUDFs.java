@@ -42,31 +42,32 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 	// Utilities - can also be used by other UDF packages
 	
 	public static String toHiveString(Object o) {
-		String s = String.valueOf(o);
-		if (StaticOptionHolder.isOutputEscEnabled) return StringEscapeUtils.escapeJava(s);			
-		return s;
+		return toHiveString(o, StaticOptionHolder.isOutputEscEnabled);
 	}
 
-	private static String escapeArrayElement(Object o) {
+	public static String toHiveString(Object o, boolean isEscapeEnabled) {
+		if (o == null) return StaticOptionHolder.hiveNull;
+		return isEscapeEnabled ? escapeJavaAndHive(o) : noescapeJavaAndHive(o); 
+	}
+
+	private static String escapeJavaAndHive(Object o) {
 		String s = StringEscapeUtils.escapeJava(String.valueOf(String.valueOf(o))); // Escape tab newline etc
 		String elemSepReplaced = s.replace(Character.toString(StaticOptionHolder.outputArrElemSep), StaticOptionHolder.ucEscOutputArrElemSep); // Escape array element separator
-		String outputSepReplaced = elemSepReplaced.replace(Character.toString(StaticOptionHolder.outputSep), StaticOptionHolder.ucEscOutputSep); // Escape array element separator
+		String outputSepReplaced = elemSepReplaced.replace(Character.toString(StaticOptionHolder.outputSep), StaticOptionHolder.ucEscOutputSep); // Escape column separator
 		return outputSepReplaced;
 	}
 	
-	private static String rawArrayElement(Object o) {
+	private static String noescapeJavaAndHive(Object o) {
 		String s = String.valueOf(o);
-		if (s.indexOf(StaticOptionHolder.outputArrElemSep) >= 0) throw new IllegalArgumentException(String.format("Array element [%s] contains array element separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputArrElemSep, (int) StaticOptionHolder.outputArrElemSep));
-		if (s.indexOf(StaticOptionHolder.outputSep) >= 0) throw new IllegalArgumentException(String.format("Array element [%s] contains output separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputSep, (int) StaticOptionHolder.outputSep));
+		if (s.indexOf(StaticOptionHolder.outputArrElemSep) >= 0) throw new IllegalArgumentException(String.format("Object [%s] contains array element separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputArrElemSep, (int) StaticOptionHolder.outputArrElemSep));
+		if (s.indexOf(StaticOptionHolder.outputSep) >= 0) throw new IllegalArgumentException(String.format("Object [%s] contains output separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputSep, (int) StaticOptionHolder.outputSep));
 		return s;
 	}
 
 	public static String toHiveArray (Iterable<?> iterableToArray) {
 		ArrayList<String> r = new ArrayList<>();
 		for (Object o: iterableToArray) {
-			if (o == null) r.add(StaticOptionHolder.hiveNull);
-			else if (StaticOptionHolder.isArrayEscEnabled) r.add(escapeArrayElement(o));
-			else r.add(rawArrayElement(o));
+			r.add(toHiveString(o, StaticOptionHolder.isArrayEscEnabled));
 		}
 		return String.join(Character.toString(StaticOptionHolder.outputArrElemSep), r);		
 	}
