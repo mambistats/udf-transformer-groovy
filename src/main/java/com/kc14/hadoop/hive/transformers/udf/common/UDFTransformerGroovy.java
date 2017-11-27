@@ -167,7 +167,7 @@ public class UDFTransformerGroovy {
 				.build());
 
 		options.addOption(Option.builder(SHORT_OPTION_DEFINE)
-				.longOpt(LONG_OPTION_DEFINE)
+				.longOpt      (LONG_OPTION_DEFINE)
 				.desc         ("define property: name = value")
 				.required     (false)
 				.hasArgs      ()
