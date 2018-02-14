@@ -24,12 +24,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.kc14.algebra.CountableInterval;
+
 /**
  * Immutable representation of a continuous range of IPv6 addresses (bounds included).
  *
  * @author Jan Van Besien
  */
-public class IPv6AddressRange implements Comparable<IPv6AddressRange>, Iterable<IPv6Address>, Serializable
+public class IPv6AddressRange implements CountableInterval<IPv6Address>, Comparable<IPv6AddressRange>, Iterable<IPv6Address>, Serializable
 {
     private final IPv6Address first;
 
@@ -325,4 +327,19 @@ public class IPv6AddressRange implements Comparable<IPv6AddressRange>, Iterable<
             throw new UnsupportedOperationException("This iterator provides read only access");
         }
     }
+
+	@Override
+	public IPv6Address first() {
+		return this.getFirst();
+	}
+
+	@Override
+	public IPv6Address last() {
+		return this.getLast();
+	}
+
+	@Override
+	public CountableInterval<IPv6Address> newFromFirstAndLast(IPv6Address first, IPv6Address last) {
+		return fromFirstAndLast(first, last);
+	}
 }
