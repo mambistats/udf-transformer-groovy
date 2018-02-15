@@ -15,19 +15,22 @@ public class DisjunctPartitioningMerger {
 			                     final Collection<IPv6AddressRange> C, final Collection<Collection<E>> CP,
 			                     Collection<E> prototype // Type Tagger
 			                     ) {
-		IPv6AddressRange a =  getNextRange(A);
+        IPv6AddressRange a =  getNextRange(A);
 		Collection<E>    ap = getNextProperties(AP);
 		
 		IPv6AddressRange b =  getNextRange(B);
 		Collection<E>    bp = getNextProperties(BP);
+
+		Collection<E> lhsNullElement = createNullElement(ap, prototype);
 		
+        // Process ranges
 		while (a != null && b != null) {
 			if (a.getLast().compareTo(b.getFirst()) < 0) {
 				// Non-overlapping case 1
 				// Interval A: |-----|
 				// Interval B:         |-----|
 				C.add(a);
-				CP.add(appendNull(ap, prototype));
+				CP.add(addApAndNull(ap, prototype));
 				a = getNextRange(A);
 				ap = getNextProperties(AP);
 			}
@@ -36,7 +39,7 @@ public class DisjunctPartitioningMerger {
 				// Interval A:         |-----|
 				// Interval B: |-----|
 				C.add(b);
-				CP.add(prependNull(bp, prototype));
+				CP.add(addNullElementAndBp(lhsNullElement, bp, prototype));
 				b = getNextRange(B);
 				bp = getNextProperties(BP);
 			}
@@ -48,12 +51,12 @@ public class DisjunctPartitioningMerger {
 					// Interval A: |--+-----....
 					// Interval B:    |-------....
 					C.add(IPv6AddressRange.fromFirstAndLast(a.getFirst(), predecessor(b.getFirst())));
-					CP.add(appendNull(ap, prototype));
+					CP.add(addApAndNull(ap, prototype));
 					if (A_Right_CompareTo_B_Right < 0) {
 						// Interval A: |--+-----|
 						// Interval B:    |-----+-----|
 						C.add(IPv6AddressRange.fromFirstAndLast(b.getFirst(), a.getLast())); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						b = IPv6AddressRange.fromFirstAndLast(successor(a.getLast()), b.getLast());
 						// bp = bp;
 						a = getNextRange(A);
@@ -63,7 +66,7 @@ public class DisjunctPartitioningMerger {
 						// Interval A: |--+------+-|
 						// Interval B:    |------|
 						C.add(b); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						a = IPv6AddressRange.fromFirstAndLast(successor(b.getLast()), a.getLast());
 						// ap = ap;
 						b = getNextRange(B);
@@ -73,7 +76,7 @@ public class DisjunctPartitioningMerger {
 						// Interval A: |--+--------|
 						// Interval B:    |--------|
 						C.add(b); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						a = getNextRange(A);
 						ap = getNextProperties(AP);
 						b = getNextRange(B);
@@ -84,13 +87,14 @@ public class DisjunctPartitioningMerger {
 					// Interval A:    |-------....
 					// Interval B: |--+-----....
 					C.add(IPv6AddressRange.fromFirstAndLast(b.getFirst(), predecessor(a.getFirst())));
-					CP.add(prependNull(bp, prototype));
+					CP.add(addNullElementAndBp(lhsNullElement, bp, prototype));
 					if (A_Right_CompareTo_B_Right > 0) {
 						// Interval A:    |-----+-----|
 						// Interval B: |--+-----|
 						C.add(IPv6AddressRange.fromFirstAndLast(a.getFirst(), b.getLast())); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						a = IPv6AddressRange.fromFirstAndLast(successor(b.getLast()), a.getLast());
+						// ap = ap
 						b = getNextRange(B);
 						bp = getNextProperties(BP);
 					}
@@ -98,7 +102,7 @@ public class DisjunctPartitioningMerger {
 						// Interval A:    |------|
 						// Interval B: |--+------+-|
 						C.add(a); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						b = IPv6AddressRange.fromFirstAndLast(successor(a.getLast()), b.getLast());
 						// bp = bp;
 						a = getNextRange(A);
@@ -108,7 +112,7 @@ public class DisjunctPartitioningMerger {
 						// Interval A:    |--------|
 						// Interval B: |--+--------|
 						C.add(a); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						a = getNextRange(A);
 						ap = getNextProperties(AP);
 						b = getNextRange(B);
@@ -122,7 +126,7 @@ public class DisjunctPartitioningMerger {
 						// Interval A: |-----|
 						// Interval B: |-----+-----|
 						C.add(a); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						b = IPv6AddressRange.fromFirstAndLast(successor(a.getLast()), b.getLast());
 						// bp = bp;
 						a = getNextRange(A);
@@ -132,9 +136,9 @@ public class DisjunctPartitioningMerger {
 						// Interval A: |-----+-----|
 						// Interval B: |-----|
 						C.add(b); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						a = IPv6AddressRange.fromFirstAndLast(successor(b.getLast()), a.getLast());
-						// bp = bp;
+						// ap = ap;
 						b = getNextRange(B);
 						bp = getNextProperties(BP);
 					}
@@ -142,7 +146,7 @@ public class DisjunctPartitioningMerger {
 						// Interval A: |--------|
 						// Interval B: |--------|
 						C.add(a); // A v B
-						CP.add(sum(ap, bp, prototype)); // New interval gets properties of both intervals
+						CP.add(addApAndBp(ap, bp, prototype)); // New interval gets properties of both intervals
 						a = getNextRange(A);
 						ap = getNextProperties(AP);
 						b = getNextRange(B);
@@ -154,20 +158,31 @@ public class DisjunctPartitioningMerger {
 		if (a != null) { // Boundary solution: B completely processed or empty, but right boundary of current interval in A not!
 			// Append interval in progress
 			C.add(a);
-			CP.add(appendNull(ap, prototype));
+			CP.add(addApAndNull(ap, prototype));
 			// Append rest of A
 			while (A.hasNext()) C.add(A.next());
-			while (AP.hasNext()) CP.add(appendNull(AP.next(), prototype));
+			while (AP.hasNext()) CP.add(addApAndNull(AP.next(), prototype));
 		}
 		else if (b != null) { // Boundary solution: A completely processed or empty, but right boundary of current interval in B not!
 			// Append interval in progress
 			C.add(b);
-			CP.add(prependNull(bp, prototype));
+			CP.add(addNullElementAndBp(lhsNullElement,bp, prototype));
 			// Append rest of B
 			while (B.hasNext()) C.add(B.next());
-			while (BP.hasNext()) CP.add(prependNull(BP.next(), prototype));
+			while (BP.hasNext()) CP.add(addNullElementAndBp(lhsNullElement, BP.next(), prototype));
 		}
-		return;				
+		return;
+	}
+
+
+	private static <E> Collection<E> createNullElement(Collection<E> ap, Collection<E> prototype) {
+		// The length of the first element in AP defines the length of the null element for AP
+        final int nullElementLength = ap != null ? ap.size() : 0;
+        Collection<E> nullElement = cloneByType(prototype, nullElementLength);
+        for (int i = 0; i < nullElementLength; ++i) {
+        	nullElement.add(null);
+        }
+		return nullElement;
 	}
 
 
@@ -180,21 +195,21 @@ public class DisjunctPartitioningMerger {
 	}
 	
 	
-	private static <E> Collection<E> appendNull(Collection<E> ap, Collection<E> prototype) {
+	private static <E> Collection<E> addApAndNull(Collection<E> ap, Collection<E> prototype) {
 		Collection<E> cp = cloneByType(prototype, ap.size() + 1);
 		cp.addAll(ap);
 		cp.add(null);
 		return cp;
 	}
 
-	private static <E> Collection<E> prependNull(Collection<E> ap, Collection<E> prototype) {
-		Collection<E> cp = cloneByType(prototype, ap.size() + 1);
-		cp.add(null);
-		cp.addAll(ap);
+	private static <E> Collection<E> addNullElementAndBp(Collection<E> nullElement, Collection<E> collection, Collection<E> prototype) {
+		Collection<E> cp = cloneByType(prototype, nullElement.size() + collection.size());
+		cp.addAll(nullElement);
+		cp.addAll(collection);
 		return cp;
 	}
 
-	private static <E> Collection<E> sum(Collection<E> ap, Collection<E> bp, Collection<E> prototype) {
+	private static <E> Collection<E> addApAndBp(Collection<E> ap, Collection<E> bp, Collection<E> prototype) {
 		Collection<E> cp = cloneByType(prototype, ap.size() + bp.size());
 		cp.addAll(ap);
 		cp.addAll(bp);
