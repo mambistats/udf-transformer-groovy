@@ -14,15 +14,15 @@ public class DisjunctPartitioningIntervalMerger {
 			final Collection<I> C, final Collection<Collection<P>> CP,
 			final Collection<P> prototype // Type Tagger
 			) {
-        I a =  getNextRange(A);
+        I                a =  getNextRange(A);
 		Collection<P>    ap = getNextProperties(AP);
 		
-		I b =  getNextRange(B);
+		I                b =  getNextRange(B);
 		Collection<P>    bp = getNextProperties(BP);
 		
 		I f = a != null ? a : b; // Factory for new intervals
 
-		Collection<P> lhsNullElement = createNullElement(ap, prototype);
+		Collection<P> lhsNullElement = createNullElementFrom(ap, prototype); // The length of the first element in AP defines the length of the null element for AP
 		
         // Process ranges
 		while (a != null && b != null) {
@@ -167,7 +167,7 @@ public class DisjunctPartitioningIntervalMerger {
 		else if (b != null) { // Boundary solution: A completely processed or empty, but right boundary of current interval in B not!
 			// Append interval in progress
 			C.add(b);
-			CP.add(addNullElementAndBp(lhsNullElement,bp, prototype));
+			CP.add(addNullElementAndBp(lhsNullElement, bp, prototype));
 			// Append rest of B
 			while (B.hasNext()) C.add(B.next());
 			while (BP.hasNext()) CP.add(addNullElementAndBp(lhsNullElement, BP.next(), prototype));
@@ -176,8 +176,7 @@ public class DisjunctPartitioningIntervalMerger {
 	}
 
 
-	private static <E> Collection<E> createNullElement(Collection<E> ap, Collection<E> prototype) {
-		// The length of the first element in AP defines the length of the null element for AP
+	private static <E> Collection<E> createNullElementFrom(Collection<E> ap, Collection<E> prototype) {
         final int nullElementLength = ap != null ? ap.size() : 0;
         Collection<E> nullElement = cloneByType(prototype, nullElementLength);
         for (int i = 0; i < nullElementLength; ++i) {

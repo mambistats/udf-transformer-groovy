@@ -50,10 +50,10 @@ public class IPv6RangesMerger_Test {
 
 	@Test
 	public void u_v_w_x_MergeShouldReturn_expectedResultfile() throws Exception {
-		String u_ranges = new File(this.getClass().getClassLoader().getResource("u.ipv6_ranges.gz").getFile()).getAbsolutePath();
-		String v_ranges = new File(this.getClass().getClassLoader().getResource("v.ipv6_ranges.gz").getFile()).getAbsolutePath();
-		String w_ranges = new File(this.getClass().getClassLoader().getResource("w.ipv6_ranges.gz").getFile()).getAbsolutePath();
-		String x_ranges = new File(this.getClass().getClassLoader().getResource("x.ipv6_ranges.gz").getFile()).getAbsolutePath();
+		String u_ranges = new File(this.getClass().getClassLoader().getResource("bigdata/u.ipv6_ranges.gz").getFile()).getAbsolutePath();
+		String v_ranges = new File(this.getClass().getClassLoader().getResource("bigdata/v.ipv6_ranges.gz").getFile()).getAbsolutePath();
+		String w_ranges = new File(this.getClass().getClassLoader().getResource("bigdata/w.ipv6_ranges.gz").getFile()).getAbsolutePath();
+		String x_ranges = new File(this.getClass().getClassLoader().getResource("bigdata/x.ipv6_ranges.gz").getFile()).getAbsolutePath();
 		String[] args = new String[] {
 			"--ipv6-ranges",
 			u_ranges,
@@ -66,7 +66,7 @@ public class IPv6RangesMerger_Test {
 		
 		IPv6RangesMerger.main(args);
 		
-		File expectedFile = new File("src/test/resources/expected-u+v+w+x-merged-ipv6-ranges.out.gz");
+		File expectedFile = new File("src/test/resources/bigdata/expected-u+v+w+x-merged-ipv6-ranges.out.gz");
 		File actualFile = new File("target/actual-u+v+w+x-merged-ipv6-ranges.out.gz");
 		assertTrue("Result content equals expected content!", FileUtils.contentEquals(expectedFile, actualFile));
 	}
