@@ -188,7 +188,7 @@ public class UDFTransformerGroovy {
 		
 		String usageFooter = "See hive transform for more info.";
 		
-		// Add options from dervied transformer ...
+		// Add options from derived transformer ...
 
 		for (Option otherOption : otherOptions.getOptions()) {
 			options.addOption(otherOption);

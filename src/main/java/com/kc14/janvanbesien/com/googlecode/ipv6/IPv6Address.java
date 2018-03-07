@@ -27,12 +27,14 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 
+import com.kc14.algebra.Countable;
+
 /**
  * Immutable representation of an IPv6 address.
  *
  * @author Jan Van Besien
  */
-public final class IPv6Address implements Comparable<IPv6Address>, Serializable
+public final class IPv6Address implements Countable<IPv6Address>, Serializable
 {
     private static final int N_SHORTS = 8;
 
@@ -623,5 +625,15 @@ public final class IPv6Address implements Comparable<IPv6Address>, Serializable
         final IPv6Address flipped = new IPv6Address(~this.highBits, ~this.lowBits);
         return flipped.numberOfLeadingZeroes();
     }
+
+	@Override
+	public IPv6Address predecessor() {
+		return this.subtract(1);
+	}
+
+	@Override
+	public IPv6Address successor() {
+		return this.add(1);
+	}
 
 }

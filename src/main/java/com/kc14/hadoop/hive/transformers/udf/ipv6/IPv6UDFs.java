@@ -98,7 +98,7 @@ public class IPv6UDFs extends UDFAdapter implements UDFPackageIF {
 		this.ipv6NetworkRanges = ipv6NetworkRanges;
 	}
 
-	private static ArrayList<String> readNetworkRanges(String networkRangesFilename) throws FileNotFoundException, IOException, UnsupportedEncodingException {
+	public static ArrayList<String> readNetworkRanges(String networkRangesFilename) throws FileNotFoundException, IOException, UnsupportedEncodingException {
 		System.err.println("info: udf-transformer-groovy: IPv6UDFs.readNetworkRanges(): Reading file [" + networkRangesFilename + "] ...");
 		FileInputStream is = new FileInputStream(networkRangesFilename);
 		GZIPInputStream gzis = new GZIPInputStream(is, 16 * 4096); // This is a buffered input stream
@@ -191,7 +191,7 @@ public class IPv6UDFs extends UDFAdapter implements UDFPackageIF {
 		return IPv6Address.fromByteArray(ipv6hex);
 	}
 
-	private static IPv6AddressRange[] fromLinesIPv6Ranges(List<String> networkRangeLines) throws UnknownHostException {
+	public static IPv6AddressRange[] fromLinesIPv6Ranges(List<String> networkRangeLines) throws UnknownHostException {
 		int numLines = networkRangeLines.size();
 		
 		System.err.format("info: udf-transformer-groovy: IPv6UDFs.fromLinesIPv6Ranges(): Converting network ranges to IPv6Ranges[%,d] for binary search ...\n", numLines);
