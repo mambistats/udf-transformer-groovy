@@ -51,7 +51,7 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 	}
 
 	private static String escapeJavaAndHive(Object o) {
-		String s = StringEscapeUtils.escapeJava(String.valueOf(String.valueOf(o))); // Escape tab newline etc
+		String s = StringEscapeUtils.escapeJava(String.valueOf(o)); // Escape tab newline etc
 		String elemSepReplaced = s.replace(Character.toString(StaticOptionHolder.outputArrElemSep), StaticOptionHolder.ucEscOutputArrElemSep); // Escape array element separator
 		String outputSepReplaced = elemSepReplaced.replace(Character.toString(StaticOptionHolder.outputSep), StaticOptionHolder.ucEscOutputSep); // Escape column separator
 		return outputSepReplaced;
@@ -59,8 +59,8 @@ public class HiveUDFs extends UDFAdapter implements UDFPackageIF {
 	
 	private static String noescapeJavaAndHive(Object o) {
 		String s = String.valueOf(o);
-		if (s.indexOf(StaticOptionHolder.outputArrElemSep) >= 0) throw new IllegalArgumentException(String.format("Object [%s] contains array element separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputArrElemSep, (int) StaticOptionHolder.outputArrElemSep));
-		if (s.indexOf(StaticOptionHolder.outputSep) >= 0) throw new IllegalArgumentException(String.format("Object [%s] contains output separator [%c,\\x04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputSep, (int) StaticOptionHolder.outputSep));
+		if (s.indexOf(StaticOptionHolder.outputArrElemSep) >= 0) throw new IllegalArgumentException(String.format("Object [%s] contains array element separator [%c,\\x%04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputArrElemSep, (int) StaticOptionHolder.outputArrElemSep));
+		if (s.indexOf(StaticOptionHolder.outputSep) >= 0) throw new IllegalArgumentException(String.format("Object [%s] contains output separator [%c,\\x%04x], but escaping is disabled", StringEscapeUtils.escapeJava(s), StaticOptionHolder.outputSep, (int) StaticOptionHolder.outputSep));
 		return s;
 	}
 

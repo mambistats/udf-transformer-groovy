@@ -6,6 +6,8 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 	private final static String OPTION_UDGER_DATABASE = "udger-database";
 	private final static String OPTION_UDGER_INMEM = "udger-inmem";
 	private final static String OPTION_UDGER_CACHE = "udger-cache";
+	private final static String OPTION_UDGER_HASH = "udger-hash";
 	private final static String OPTION_UDGER_FIELDS = "udger-fields";
 	private final static String OPTION_UDGER_LIST =   "udger-list";
 
@@ -115,6 +118,16 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
         		.build());
 
         options.addOption(Option.builder()
+        		.longOpt      (OPTION_UDGER_HASH)
+        		.desc         ("hash capacity")
+        		.required     (false)
+        		.hasArg       (true)
+        		.argName      ("capacity")
+        		.numberOfArgs (1)
+        		.type         (Number.class)
+        		.build());
+
+        options.addOption(Option.builder()
         		.longOpt      (OPTION_UDGER_FIELDS)
         		.desc         ("fields to return")
         		.required     (false)
@@ -133,8 +146,10 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
         return options.getOptions();
 	}
 
-	UdgerParser udgerParser = null;
-	String[] fields = null;
+	UdgerParser               udgerParser =   null;
+	String[]                  fields =        null;
+	List<String>              fieldsAllNull = null;
+	Map<String, List<String>> hashCache =     null;
 	
 	@Override
 	public void initFrom(CommandLine commandLine) throws FileNotFoundException, UnsupportedEncodingException, IOException {
@@ -145,7 +160,9 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 		
 		String   udgerDb =       null;
 		boolean  inMemory =      false;
-		int      cacheCapacity = 100000;
+		// int      cacheCapacity = 100000;
+		int      cacheCapacity = 0;
+		int      hashCapacity =  100000;
 		
 		this.fields = STD_FIELDS;
 		
@@ -155,27 +172,54 @@ public class UdgerUDFs extends UDFAdapter implements UDFPackageIF {
 		System.err.println("info: udf-transformer-groovy: UdgerUDFs.initFrom(): Using Database: " + udgerDb);
 		inMemory = commandLine.hasOption(OPTION_UDGER_INMEM);
 		if (commandLine.hasOption(OPTION_UDGER_CACHE)) cacheCapacity = Integer.parseInt(commandLine.getOptionValue(OPTION_UDGER_CACHE));
+		if (commandLine.hasOption(OPTION_UDGER_HASH)) hashCapacity = Integer.parseInt(commandLine.getOptionValue(OPTION_UDGER_HASH));
         if (commandLine.hasOption(OPTION_UDGER_FIELDS)) this.fields = commandLine.getOptionValues(OPTION_UDGER_FIELDS);
+        this.fieldsAllNull = Collections.nCopies(fields.length, (String) null);
 		
 		if (commandLine.hasOption(OPTION_UDGER_LIST)) {
 			System.err.println("UdgerUDFs: Known Fields: " + Arrays.toString(ALL_FIELDS));
 		}
 		
+		this.hashCache = hashCapacity > 0 ? new HashMap<>(hashCapacity) : null;
+		
 		// Let's rock
 		this.udgerParser = new UdgerParser (udgerDb, inMemory, cacheCapacity);
 	}
 
-	public List<String> parseUa(String value) {
+	public List<String> parseUaAsFields(String value) {
+		List<String> udgerUaResultPropertyValues = null;
+		if (hashCache != null) {
+			udgerUaResultPropertyValues = hashCache.getOrDefault(value, null);
+			if (udgerUaResultPropertyValues == null) {
+				udgerUaResultPropertyValues = this.toFieldList(this.parseUa(value));
+				hashCache.put(value, udgerUaResultPropertyValues);
+			}
+		}
+		else {
+			udgerUaResultPropertyValues = this.toFieldList(this.parseUa(value));
+		}
+		return udgerUaResultPropertyValues; 
+	}
+
+	public UdgerUaResult parseUa(String value) {
 		UdgerUaResult udgerUaResult = null;
 		try {
 			// udgerUaResult = this.udgerParser.parseUa("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9");
 			udgerUaResult = this.udgerParser.parseUa(value);
 		} catch (SQLException e) {
 			e.printStackTrace();
+			udgerUaResult = null;
 		}
-		Map<String, String> udgerUaResultProperties = BeanUtils.getBeanProperties(udgerUaResult);
-		List<String> udgerUaResultPropertyValues = Arrays.asList(this.fields).stream().map(field -> udgerUaResultProperties.get(field)).collect(Collectors.toList());
-		return udgerUaResultPropertyValues; 
+		return udgerUaResult;
+	}
+
+	public List<String> toFieldList(UdgerUaResult udgerUaResult) {
+		List<String> udgerUaResultPropertyValues = this.fieldsAllNull;
+		if (udgerUaResult != null) {
+			Map<String, String> udgerUaResultProperties = BeanUtils.getBeanProperties(udgerUaResult);
+			udgerUaResultPropertyValues = Arrays.asList(this.fields).stream().map(field -> udgerUaResultProperties.get(field)).collect(Collectors.toList());
+		}
+		return udgerUaResultPropertyValues;
 	}
 
 }
